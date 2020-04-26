@@ -1,35 +1,28 @@
-from threading import Thread, Event
+import datetime, threading, time
 import getch
 
+class Engine:
+    pulseThread = threading.Thread
+    inpThread
 
-class MainThread(Thread):
-    
-    def __init__(self, event):
-        Thread.__init__(self)
-        self.stopped = event
-        
-        #thread to record button presses:
-        stop_btn_capture = Event()
-        inp_thread = Inp_Thread(stop_btn_capture)
-        inp_thread.start()
+    def __init__(self):
+        pulseThread = threading.Thread(target = self.pulse)
+        inpThread = threading.Thread(target = self.cap_btn)
+        self.btn_pressed = ''
 
-    def run(self):
-        while not self.stopped.wait(0.5):
-            #TODO: update Frame
-            pass 
+    def start(self):
+        self.pulseThread.start()
+        self.inpThread.start()
 
-class Inp_Thread(Thread):
+    def pulse(self):
+        next_call = time.time()
+        while self.btn_pressed!= 'q':
+            print(datetime.datetime.now()) 
+            next_call = next_call + 1/2
+            time.sleep(next_call - time.time())
 
-    def __init__(self, event):
-        Thread.__init__(self)
-        self.stopped = event
-        
-def main():
-    #create thread to start game:
-    stopFlag = Event()
-    game_thread = MainThread(stopFlag)
-    game_thread.start()
-    
+    def cap_btn(self):
+        self.btn_pressed = getch.getch()
 
 if __name__ == "__main__":
-    main()
+    myengine = Engine
