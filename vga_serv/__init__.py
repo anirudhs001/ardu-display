@@ -1,2 +1,2 @@
-from vga_serv import game_engine
-from vga_serv import server
+import vga_serv
+port = '/dev/COM0'
