@@ -2,12 +2,15 @@ import threading
 import getch
 import time
 import vga_serv
+import serial
+import asyncio
 
 class Engine(threading.Thread):
 
     def __init__(self):
         super(Engine, self).__init__()
         self.running = True
+        self.sleep_time = 0.1
         
     #run is a member func of class Thread, started when thread.start() is called
     # use here: 1)send the posn of sprites to arduino
@@ -16,31 +19,21 @@ class Engine(threading.Thread):
         while self.running:
             #send data to arduino
             with serial.Serial(vga_serv.port, 115200, timeout=0.1) as ser:
-                arduino = VGA()
-                
+                arduino = vga_serv.VGA()
 
-    def cap_btn(self):
-        self.btn_pressed = getch.getch()
-
-
-#repeat a func repeatitively:
-def thread_funcn():
-    #mimic sending data to arduino
-    time.sleep(2)
+                arduino.flush_frame(ser)
+                time.sleep(self.sleep_time)
 
 
 
 def main():
-
-    with serial.Serial('/dev/ttyACM0', 115200, timeout = 0.1) as ser:
-        arduino = VGA()
-
-        start_time = time.time()
-        arduino.flush_frame(ser)
-        end_time = time.time()
-        
-        print(f"time taken = {end_time - start_time}")
-
-if __name__ == "__main__":
     myengine = Engine
     Engine.start(myengine)
+    while myengine.running:
+        try:
+            resp = getch.getch()
+            
+
+
+if __name__ == "__main__":
+    

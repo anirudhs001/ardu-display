@@ -25,8 +25,3 @@ class VGA:
         #send a big byte array to arduino and check the time
         ser.write(b"123456")
         print(str(ser.readline()))
-
-
-if __name__ == "__main__":
-    main()
-    
