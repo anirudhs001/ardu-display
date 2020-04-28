@@ -25,3 +25,7 @@ class VGA:
         #send a big byte array to arduino and check the time
         ser.write(b"123456")
         print(str(ser.readline()))
+
+    def add_response(self):
+    #records the user response and updates frame accordingly
+        resp = getch.getch() 

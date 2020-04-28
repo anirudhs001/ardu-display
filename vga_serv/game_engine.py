@@ -1,9 +1,9 @@
 import threading
 import getch
 import time
-import vga_serv
 import serial
 import asyncio
+import vga_serv
 
 class Engine(threading.Thread):
 
@@ -20,20 +20,24 @@ class Engine(threading.Thread):
             #send data to arduino
             with serial.Serial(vga_serv.port, 115200, timeout=0.1) as ser:
                 arduino = vga_serv.VGA()
-
+                arduino.add_response(resp)
                 arduino.flush_frame(ser)
                 time.sleep(self.sleep_time)
 
 
 
-def main():
+def start():
     myengine = Engine
     Engine.start(myengine)
+    global resp
+    resp = ''
     while myengine.running:
         try:
             resp = getch.getch()
             
+        except: KeyboardInterrupt
+    myengine.running = False
 
 
 if __name__ == "__main__":
-    
+    main()
