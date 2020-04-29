@@ -2,42 +2,41 @@ import threading
 import getch
 import time
 import serial
-import asyncio
+import vga_serv.server as server
 import vga_serv
 
+
+global arduino 
+arduino = server.VGA()
 class Engine(threading.Thread):
 
     def __init__(self):
         super(Engine, self).__init__()
-        self.running = True
-        self.sleep_time = 0.1
-        
+        self.sleep_time = vga_serv.frame_duration
+        self.running = True 
+
+    def run(self):
     #run is a member func of class Thread, started when thread.start() is called
     # use here: 1)send the posn of sprites to arduino
     #           2)checks usr input  
-    def run(self, arduino):
+    #send data to arduino
         while self.running:
-            #send data to arduino
-            with serial.Serial(vga_serv.port, 115200, timeout=0.1) as ser:
-                arduino = vga_serv.VGA()
-                arduino.add_response(resp)
-                arduino.flush_frame(ser)
-                time.sleep(self.sleep_time)
+            #arduino.flush_frame()
+            print(f'{__name__}:frame updated!')
+            time.sleep(self.sleep_time)
 
 
+def update_sprite(id, x, y):
+    arduino.update_sprite(id, x, y)
 
-def start():
-    myengine = Engine
+def start_engine():
+    print(f'{__name__}: vga server created')
+
+    myengine = Engine()
     Engine.start(myengine)
-    global resp
-    resp = ''
-    while myengine.running:
-        try:
-            resp = getch.getch()
-            
-        except: KeyboardInterrupt
-    myengine.running = False
+
+    print(f'{__name__}: engine started')   
 
 
 if __name__ == "__main__":
-    main()
+    start_engine()

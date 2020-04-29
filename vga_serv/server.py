@@ -2,30 +2,27 @@ from bitarray import bitarray
 import serial
 import time
 
+import vga_serv
 
 class VGA:
 
     def __init__(self):
         self.WIDTH = 180#?
         self.HEIGHT = 192#?
-        self.canvas = bitarray(self.WIDTH * self.HEIGHT)
-        self.canvas[:] = False
+        self.ser = serial.Serial(vga_serv.port, 115200, timeout=vga_serv.frame_duration) 
+        self.sprite_list = ['dino']        
+        self.sprite_posn = { x:(0,0) for x in self.sprite_list }
         
-    def add_sprite(self, x, y, arr, w, h):
-    #x and y are the coords of the top-left corner of sprite
-    #the canvas is drawn in the 3rd coord(but with +ve x and y)
-        for i in range(0, h):
-            self.canvas[ y*self.WIDTH + x : y*self.WIDTH + x+w] = arr[i][:]
+    def update_sprite(self, x, y, id):
+    #update the posn of sprite to send to the arduino
+        self.sprite_posn[id] = (x,y)
+        
+    def flush_frame(self):
+    #send posn of all sprites to arduino.
+    #format: sprite_id (x,y)
+        for sprite in self.sprite_list:
+            self.ser.write(sprite.encode())
+            self.ser.write(self.sprite_posn[sprite])
+            print(f"{__name__}: {sprite} flushed" )
+        
 
-    def flush_frame(self, ser):
-    #send the frame ( a 'bytearray' via serial to the arduino)
-    #currently canvas is stored as bit array but pyserial can 
-    #only write bytearrays...
-    #TODO :convert bytearray in *arduino* to bit array
-        #send a big byte array to arduino and check the time
-        ser.write(b"123456")
-        print(str(ser.readline()))
-
-    def add_response(self):
-    #records the user response and updates frame accordingly
-        resp = getch.getch() 
