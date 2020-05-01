@@ -9,20 +9,23 @@ class VGA:
     def __init__(self):
         self.WIDTH = 180#?
         self.HEIGHT = 192#?
-        self.ser = serial.Serial(vga_serv.port, 115200, timeout=vga_serv.frame_duration) 
-        self.sprite_list = ['dino']        
-        self.sprite_posn = { x:(0,0) for x in self.sprite_list }
-        
-    def update_sprite(self, x, y, id):
+        try:
+            self.ser = serial.Serial(vga_serv.port, 115200, timeout=vga_serv.frame_duration) 
+            print(f"{__name__}: Serial connection started!")
+        except:
+            print(f"{__name__}: could not start serial comm!")
+
     #update the posn of sprite to send to the arduino
-        self.sprite_posn[id] = (x,y)
+    #x and y are the coord of bottom left corner of sprite
         
-    def flush_frame(self):
+    def flush_frame(self, sprites_dict):
     #send posn of all sprites to arduino.
     #format: sprite_id (x,y)
-        for sprite in self.sprite_list:
-            self.ser.write(sprite.encode())
-            self.ser.write(self.sprite_posn[sprite])
-            print(f"{__name__}: {sprite} flushed" )
-        
-
+        try:
+            for sprite in sprites_dict:
+                #send sprite as :name_stance_x_y
+                self.ser.write(f"{sprite.x}_{sprite.y}_".encode())
+                # self.ser.write("ani_rudh_".encode())
+                print(f"{__name__}: {sprite} flushed" )
+        except :
+            "could not write! :("
