@@ -5,7 +5,7 @@
 VGAX vga;
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(9600);
     pinMode(13, OUTPUT);
 
     vga.begin();
@@ -166,36 +166,77 @@ const unsigned char img_mario_data[IMG_MARIO_SPRITES_CNT][IMG_MARIO_HEIGHT][IMG_
 };
 
 
-byte posn[2] = {0,0};
-char str[10] = "         ";
+#define DINO_ID 'D'
+#define TREE_ID 'T'
+
+const char dino[] PROGMEM = "x";
+const char obstacle[] PROGMEM = "o";
+byte stance[4];
+char sprite[4];
+int posn[4][2];
+byte sprite_count = 3;
 void loop()
 {
-    static byte sidx = 1;
+    //some buffers to read serial:
+    static int temp_x, temp_y;
     static char c;
-    static char *p = str;
-    static byte i = 0;
     while (Serial.available())
     {   
-        posn[i] = 0;
-        while (Serial.readBytes(&c, sizeof(char)), c != '_')
+        for (byte j = 0; j < sprite_count;)//read 4 sprites
         {
-            posn[i] *= 10;
-            posn[i] += c - '0';
-            vga.delay(10);//some delay so buffer can be updated 
-            *(p++) = c;
+            temp_x = posn[j][0];
+            temp_y = posn[j][1];
+            posn[j][0] = 0;
+            posn[j][1] = 0;
+            
+            for (byte i = 0; i < 4 ;)
+            {
+                vga.delay(3); //give the arduino some time to update the buffer
+                if (Serial.available() > 0)
+                {
+                    c = Serial.read();
+                    if (c == '_')//next trait of sprite(id, stance ,x , y)
+                    {   
+                        i++;
+                        continue;
+                    }
+                    else if (c == '|')
+                    {
+                        i++;
+                        j++;
+                        break;
+                    }
+                    switch (i)
+                    {
+                    case 0:
+                        sprite[j] = c;
+                        break;
+                    case 1:
+                        stance[j] = c - '0';
+                        break;
+                    case 2:
+                    case 3:
+                        posn[j][i - 2] *= 10;
+                        posn[j][i - 2] += c - '0';
+                    default:
+                        break;
+                    }
+                }
+            }
+            // vga.printSRAM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT ,FNT_NANOFONT_HEIGHT, 3, 1, str, 0, 10 * j, 1);
+            if (sprite[j - 1] == DINO_ID)
+            {
+                if (posn[j - 1][0] != temp_x || posn[j - 1][1] != temp_y)
+                    vga.printPROGMEM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT, 3, 1, dino, temp_x, VGAX_HEIGHT - 10 - temp_y, 0);
+                vga.printPROGMEM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT, 3, 1, dino , posn[j - 1][0], VGAX_HEIGHT - 10 - posn[j - 1][1], 1);
+            }
+            else
+            {
+                if (posn[j - 1][0] != temp_x || posn[j - 1][1] != temp_y)
+                    vga.printPROGMEM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT, 3, 1, obstacle, temp_x, VGAX_HEIGHT - 10 - temp_y, 0);
+                vga.printPROGMEM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT, 3, 1, obstacle, posn[j - 1][0], VGAX_HEIGHT - 10 - posn[j - 1][1], 2);
+            }
         }
-        *(p++) = c;
-        i++;
-        vga.clear(0);
     }
-
-    i = 0;
-    p = str;
-    // serial data to debug:
-    vga.printSRAM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT, 3, 1, str, 0, 1, 1);
-
-    // print the character
-    vga.blitwmask((byte*)img_mario_data[sidx], (byte*)img_mariomask_data[sidx], IMG_MARIO_WIDTH, IMG_MARIO_HEIGHT, posn[0],VGAX_HEIGHT - IMG_MARIO_HEIGHT - posn[1]);
-    // sidx = (sidx + 1) % 2;
-
+    vga.delay(50);
 }
