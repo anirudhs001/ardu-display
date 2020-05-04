@@ -3,21 +3,24 @@ import time
 import vga_serv.server as server
 import vga_serv
 import sys
+import select
 
 global arduino 
 arduino = server.VGA()
 
-def get_getch():
+def get_inp():
     try:
         import msvcrt
         if sys.version_info.major == 2:
             return msvcrt.getch
         else:
-            return lambda : msvcrt.getch().decode('utf-8')
+            return msvcrt.getch().decode('utf-8')
     except ImportError:
-        return lambda : sys.stdin.read(1)
+        if select.select([sys.stdin,], [], [], 0.0)[0]:
+            return sys.stdin.read(1)
+        return None
 
-getch = get_getch()
+
 class Console(object):
 
     @staticmethod
@@ -77,7 +80,7 @@ def _close():
     myengine._close()
 
 def update_sprite(s):
-    myengine.sprites_dict[s] = (s.stance, s.x, s.y)
+    myengine.sprites_dict[s.id] = (s.stance, s.x, s.y)
 
 def start_engine():
     print(f'{__name__}: vga server created')
