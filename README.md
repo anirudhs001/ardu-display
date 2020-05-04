@@ -15,7 +15,7 @@ About
 -----
 The project is based on [this](https://github.com/smaffer/vgax) awesome vga library.
 
-The game is written in python(dino.py), and is sent out via serial to the uno.
+The game is written in python(dino.py) which manages all sprite positions and game logic, and sends out only positions of sprites via serial to the uno.
 
 This is how the data is sent:
 
