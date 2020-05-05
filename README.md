@@ -23,6 +23,7 @@ This is how the data is sent:
 
 SCREENS
 -------
+
 ![pic](./pics/vga_test.jpg)
 
 Make new games:
