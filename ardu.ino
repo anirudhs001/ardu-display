@@ -253,10 +253,9 @@ const unsigned char empty_dino_blob_data[EMPTY_DINO_BLOB_HEIGHT][EMPTY_DINO_BLOB
 #define MSG_ID 'M'
 #define SPRITE_COUNT 1
 
-const char str[10] PROGMEM= "GAME OVER";
+char str[10] = "GAME OVER";
 const char obstacle[] PROGMEM = "o";
 static byte stance[SPRITE_COUNT];
-static char sprite[SPRITE_COUNT];
 static int posn[SPRITE_COUNT][2];
 static bool GAME_OVER = false;
 void loop()
@@ -266,73 +265,98 @@ void loop()
     static char c;
     while (Serial.available())
     {   
-        for (byte j = 0; j < SPRITE_COUNT;)//read 3 sprites
+        for (byte j = 0; j < SPRITE_COUNT; )//read 3 sprites
         {
             temp_x = posn[j][0];
             temp_y = posn[j][1];
             posn[j][0] = 0;
-            posn[j][1] = 0;
-            
-            for (byte i = 0; i < 4 ;)
+            posn[j][1] = 1;
+            if (Serial.available() > 0)
             {
-                vga.delay(3); //give the arduino some time to update the buffer
-                if (Serial.available() > 0)
+                c = Serial.read();
+                if (c == MSG_ID)
                 {
-                    c = Serial.read();
-                    if (c == '_')//next trait of sprite(id, stance ,x , y)
-                    {   
-                        i++;
-                        continue;
-                    }
-                    else if (c == '|')
-                    {
-                        i++;
-                        j++;
-                        break;
-                    }
-                    switch (i)
-                    {
-                    case 0:
-                        if (c == MSG_ID)
-                        {
-                            GAME_OVER = true;
-                            while (Serial.read() != '|'){}
-                            i = 5;
-                        }
-                        else
-                            sprite[j] = c;
-                        break;
-                    case 1:
-                        stance[j] = c - '0';
-                        break;
-                    case 2:
-                    case 3:
-                        posn[j][i - 2] *= 10;
-                        posn[j][i - 2] += c - '0';
-                    default:
-                        break;
-                    }
+                    read_msg();
+                    GAME_OVER = true;
+                }
+                else if (c == DINO_ID || ( c - '0' >= 0 && c < SPRITE_COUNT)) // for tree, id is in set [0, SPRITE_COUNT-1] 
+                {
+                    read_sprite(j);
+                    j++;
                 }
             }
             if (GAME_OVER)
-                vga.printPROGMEM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT , 3, 1, str , VGAX_WIDTH/2, VGAX_HEIGHT/2, 1);
+                vga.printSRAM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT , 3, 1, str, VGAX_WIDTH/2, VGAX_HEIGHT/2, 1);
             
-            if (sprite[j - 1] == DINO_ID)
+            if (c == DINO_ID)
             {
                 if (posn[j - 1][0] != temp_x || posn[j - 1][1] != temp_y)
-                    vga.blitwmask((byte*)empty_dino_blob_data, (byte*)img_dino_data, EMPTY_DINO_BLOB_WIDTH, EMPTY_DINO_BLOB_HEIGHT, temp_x, VGAX_HEIGHT - IMG_DINO_HEIGHT - temp_y);
-                vga.blitwmask((byte*)img_dino_data, (byte*)img_dino_data, IMG_DINO_WIDTH, IMG_DINO_HEIGHT, posn[j - 1][0], VGAX_HEIGHT - IMG_DINO_HEIGHT - posn[j - 1][1]);
+                    vga.blitwmask((byte*)empty_dino_blob_data, (byte*)img_dino_mask_data, EMPTY_DINO_BLOB_WIDTH, EMPTY_DINO_BLOB_HEIGHT, temp_x, VGAX_HEIGHT - IMG_DINO_HEIGHT - temp_y);
+                vga.blitwmask((byte*)img_dino_data, (byte*)img_dino_mask_data, IMG_DINO_WIDTH, IMG_DINO_HEIGHT, posn[j - 1][0], VGAX_HEIGHT - IMG_DINO_HEIGHT - posn[j - 1][1]);
             }
-            else if (sprite[j - 1] == TREE_ID )
+            else //TODO: use sprites instead
             {
-                if (posn[j - 1][0] <= VGAX_WIDTH && temp_x <= VGAX_WIDTH)
-                {
-                    if (posn[j - 1][0] != temp_x || posn[j - 1][1] != temp_y)
-                        vga.printPROGMEM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT, 3, 1, obstacle, temp_x, VGAX_HEIGHT - temp_y, 0);
-                    vga.printPROGMEM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT, 3, 1, obstacle, posn[j - 1][0], VGAX_HEIGHT - posn[j - 1][1], 2);
-                }
+                if (posn[j - 1][0] != temp_x || posn[j - 1][1] != temp_y)
+                    vga.printPROGMEM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT, 3, 1, obstacle, temp_x, VGAX_HEIGHT - temp_y, 0);
+                vga.printPROGMEM((byte*)fnt_nanofont_data, FNT_NANOFONT_SYMBOLS_COUNT, FNT_NANOFONT_HEIGHT, 3, 1, obstacle, posn[j - 1][0], VGAX_HEIGHT - posn[j - 1][1], 2);
             }
         }
     }
     vga.delay(50);
+}
+
+void read_sprite(byte j)
+{
+    char c;
+    for (byte i = 0; i < 4;) // TODO: change 4 to a constant
+    {   
+        vga.delay(3); //some time to update the buffer
+        if (Serial.available() > 0)
+        {
+            c = Serial.read();
+
+            if (c == '_')
+            {
+                i++;
+                continue;
+            }
+            else if (c == '|')
+            {
+                i = 5;
+                break;
+            }
+            switch(i)
+            {
+                case 1:
+                    stance[j] = c - '0';
+                    break;
+                case 2:
+                case 3:
+                    posn[j][i - 2] *= 10;
+                    posn[j][i - 2] += c - '0';
+                    break;
+                default:
+                    break;
+            }
+        }
+    }    
+}
+
+void read_msg() // TODO: merge read_msg and read_sprite
+{
+    char c;
+    char *p =str;
+    while (c != '|')
+    {
+        delay(3); //some time to... yeah i said it already
+        if (Serial.available() > 0)
+        {
+            c = Serial.read();
+            if (*p != '\n' && c != '_' && c != '|') 
+            {
+                *p = c;
+                p++;
+            }
+        }
+    }
 }
