@@ -22,6 +22,9 @@ This is how the data is sent:
     [dino.py] -> [game_engine.py] -> [server.py] ---serial--> uno
 
 
+PICS
+----
+![pic](./pics/vga_test.jpg)
 
 Make new games:
 ---------------
