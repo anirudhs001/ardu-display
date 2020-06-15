@@ -25,6 +25,8 @@ SCREENS
 -------
 
 ![pic](./pics/vga_test.jpg)
+*a dummy screen showing alphabets as characters*
+
 
 Make new games:
 ---------------
