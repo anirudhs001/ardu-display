@@ -9,7 +9,7 @@ some resistors, a vga cable , a monitor
 which supports vga input and an arduino
 uno. Follow this [link](https://github.com/smaffer/vgax) to setup.
 ### os
-currently it only works on unix based systems and has been tested on ubuntu.
+currently it only works on *nix systems and has been tested on ubuntu.
 
 About
 -----
