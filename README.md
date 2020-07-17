@@ -21,6 +21,11 @@ This is how the data is sent:
 
     [dino.py] -> [game_engine.py] -> [server.py] ---serial--> uno
 
+SCREENS
+-------
+
+![pic](./pics/vga_test.jpg)
+*a dummy screen showing alphabets as characters*
 
 
 Make new games:
