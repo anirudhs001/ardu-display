@@ -1,6 +1,6 @@
 How to run:
 -------
-clone the repo and run dino.py.
+clone the repo, run ardu.ino on the microcontroller, and run dino.py on the host computer connected to the microcontroller.
 
 Requirements:
 -------------
@@ -9,7 +9,7 @@ some resistors, a vga cable , a monitor
 which supports vga input and an arduino
 uno. Follow this [link](https://github.com/smaffer/vgax) to setup.
 ### os
-currently it only works on *nix systems and has been tested on ubuntu.
+It has only been tested on ubuntu, and probably only work on *nix systems.
 
 About
 -----
