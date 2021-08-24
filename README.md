@@ -25,7 +25,7 @@ SCREENS
 -------
 
 ![pic](./pics/vga_test.jpg)
-*a dummy screen showing alphabets as characters*
+*a dummy screen showing alphabets as characters. I forgot to record the normal sprites in action :(*
 
 
 Make new games:
